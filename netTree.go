@@ -7,8 +7,22 @@ import (
 
 type Node struct {
 	netlink.Link
-	Parents []*Node
-	Children []*Node
+	Parents Nodes
+	Children Nodes
+}
+type Nodes []*Node
+
+func (node *Node) ToSlice() (result Nodes) {
+	result = append(result, node)
+	result = append(result, node.Children.ToSlice()...)
+	return
+}
+func (nodes Nodes) ToSlice() (result Nodes) {
+	result = append(result, nodes...)
+	for _, node := range nodes {
+		result = append(result, node.Children.ToSlice()...)
+	}
+	return
 }
 
 func GetTree() *Node {
