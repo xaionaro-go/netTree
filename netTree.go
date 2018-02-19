@@ -27,6 +27,7 @@ func GetTree() *Node {
 		nodeIndex := 0
 		parentIndex := 0
 		masterIndex := 0
+		isPhysIface := false
 		switch link := linkI.(type) {
 		case *netlink.Veth:
 			nodeIndex   = link.LinkAttrs.Index
@@ -44,6 +45,7 @@ func GetTree() *Node {
 			nodeIndex   = link.LinkAttrs.Index
 			parentIndex = link.LinkAttrs.ParentIndex
 			masterIndex = link.LinkAttrs.MasterIndex
+			isPhysIface = true
 		default:
 			fmt.Printf("Skipped type: %T\n", linkI)
 			continue
@@ -51,7 +53,7 @@ func GetTree() *Node {
 
 		node := Node{Link: linkI}
 		indexMap[nodeIndex] = &node
-		if parentIndex != 0 || masterIndex != 0 {
+		if parentIndex != 0 || masterIndex != 0 || isPhysIface {
 			childrenMap[parentIndex] = append(childrenMap[parentIndex], &node)
 		}
 
