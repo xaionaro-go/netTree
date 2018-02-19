@@ -1,4 +1,5 @@
 ```sh
+go get github.com/xaionaro-go/netTree/nettree
 go install github.com/xaionaro-go/netTree/nettree
 "$GOPATH"/bin/nettree
 ```
