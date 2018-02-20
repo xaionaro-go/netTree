@@ -2,6 +2,7 @@ package netTree
 
 import (
 	"fmt"
+	//"github.com/davecgh/go-spew/spew"
 	"github.com/vishvananda/netlink"
 )
 
@@ -38,11 +39,16 @@ func GetTree() *Node {
 	childrenMap := map[int][]*Node{}
 
 	for _, linkI := range linkList {
+		//spew.Dump(linkI)
 		nodeIndex := 0
 		parentIndex := 0
 		masterIndex := 0
 		isPhysIface := false
 		switch link := linkI.(type) {
+		case *netlink.Bond:
+			nodeIndex   = link.LinkAttrs.Index
+			parentIndex = link.LinkAttrs.ParentIndex
+			masterIndex = link.LinkAttrs.MasterIndex
 		case *netlink.Veth:
 			nodeIndex   = link.LinkAttrs.Index
 			parentIndex = link.LinkAttrs.ParentIndex

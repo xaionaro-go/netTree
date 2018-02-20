@@ -12,6 +12,8 @@ func recursivePrint(node *netTree.Node, level int) {
 	ifaceType := strings.ToLower(strings.Split(fmt.Sprintf("%T", node.Link), ".")[1])
 	ifaceName := ""
 	switch link := node.Link.(type) {
+	case *netlink.Bond:
+		ifaceName = link.LinkAttrs.Name
 	case *netlink.Veth:
 		ifaceName = link.LinkAttrs.Name
 	case *netlink.Bridge:
