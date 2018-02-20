@@ -13,3 +13,5 @@ go install github.com/xaionaro-go/netTree/nettree
     - bond0.2091 (vlan)
       - vlan2091 (bridge)
 ```
+
+A bash script to print the network interfaces tree: [https://github.com/zabojcampula/show-net-devices-tree](https://github.com/zabojcampula/show-net-devices-tree)
