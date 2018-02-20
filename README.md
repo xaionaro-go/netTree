@@ -7,10 +7,9 @@ go install github.com/xaionaro-go/netTree/nettree
 ```
 - lo (device)
 - eth0 (device)
-- eth1 (device)
-  - eth1br (bridge)
-  - eth1.6 (vlan)
-    - vlan6 (bridge)
-  - eth1.8 (vlan)
-    - vlan8 (bridge)
+  - bond0 (bond)
+    - bond0.2090 (vlan)
+      - vlan2090 (bridge)
+    - bond0.2091 (vlan)
+      - vlan2091 (bridge)
 ```
