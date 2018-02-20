@@ -2,8 +2,9 @@ package main
 
 import (
 	"fmt"
-	"github.com/xaionaro-go/netTree"
+	//"github.com/davecgh/go-spew/spew"
 	"github.com/vishvananda/netlink"
+	"github.com/xaionaro-go/netTree"
 	"strings"
 )
 
@@ -31,4 +32,5 @@ func main() {
 	for _, child := range rootNode.Children {
 		recursivePrint(child, 0)
 	}
+	//spew.Dump(rootNode)
 }
