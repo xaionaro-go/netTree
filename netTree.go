@@ -53,16 +53,20 @@ func GetTree() *Node {
 
 		if parentIndex != 0 {
 			parent := indexMap[parentIndex]
-			if _, ok := parent.Link.(*netlink.Bridge); ok {
+			if parent == nil {
 				childrenMap[0] = append(childrenMap[0], node)
 			} else {
-				_, parentIsVeth   := parent.Link.(*netlink.Veth)
-				_, parentIsDevice := parent.Link.(*netlink.Device)
-				if parentIsVeth || parentIsDevice {
-					childrenMap[parentIndex] = append(childrenMap[parentIndex], node)
+				if _, ok := parent.Link.(*netlink.Bridge); ok {
+					childrenMap[0] = append(childrenMap[0], node)
 				} else {
-					if masterIndex == 0 && !nodeIsDevice {
-						childrenMap[0] = append(childrenMap[0], node)
+					_, parentIsVeth   := parent.Link.(*netlink.Veth)
+					_, parentIsDevice := parent.Link.(*netlink.Device)
+					if parentIsVeth || parentIsDevice {
+						childrenMap[parentIndex] = append(childrenMap[parentIndex], node)
+					} else {
+						if masterIndex == 0 && !nodeIsDevice {
+							childrenMap[0] = append(childrenMap[0], node)
+						}
 					}
 				}
 			}
