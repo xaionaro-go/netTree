@@ -1,7 +1,7 @@
 package netTree
 
 import (
-	"fmt"
+	//"fmt"
 	//"github.com/davecgh/go-spew/spew"
 	"github.com/vishvananda/netlink"
 )
@@ -35,59 +35,59 @@ func GetTree() *Node {
 	}
 
 	indexMap := map[int]*Node{}
-	parentsMap := map[int][]*Node{}
+	slavesMap := map[int][]*Node{}
 	childrenMap := map[int][]*Node{}
 
 	for _, linkI := range linkList {
-		//spew.Dump(linkI)
-		nodeIndex := 0
-		parentIndex := 0
-		masterIndex := 0
-		isPhysIface := false
-		switch link := linkI.(type) {
-		case *netlink.Bond:
-			nodeIndex   = link.LinkAttrs.Index
-			parentIndex = link.LinkAttrs.ParentIndex
-			masterIndex = link.LinkAttrs.MasterIndex
-		case *netlink.Veth:
-			nodeIndex   = link.LinkAttrs.Index
-			parentIndex = link.LinkAttrs.ParentIndex
-			masterIndex = link.LinkAttrs.MasterIndex
-		case *netlink.Bridge:
-			nodeIndex   = link.LinkAttrs.Index
-			parentIndex = link.LinkAttrs.ParentIndex
-			masterIndex = link.LinkAttrs.MasterIndex
-		case *netlink.Vlan:
-			nodeIndex   = link.LinkAttrs.Index
-			parentIndex = link.LinkAttrs.ParentIndex
-			masterIndex = link.LinkAttrs.MasterIndex
-		case *netlink.Device:
-			nodeIndex   = link.LinkAttrs.Index
-			parentIndex = link.LinkAttrs.ParentIndex
-			masterIndex = link.LinkAttrs.MasterIndex
-			isPhysIface = true
-		default:
-			fmt.Printf("Skipped type: %T\n", linkI)
-			continue
-		}
-
 		node := Node{Link: linkI}
-		indexMap[nodeIndex] = &node
-		if parentIndex != 0 || masterIndex != 0 || isPhysIface {
-			childrenMap[parentIndex] = append(childrenMap[parentIndex], &node)
+		indexMap[linkI.Attrs().Index] = &node
+	}
+
+	for _, node := range indexMap {
+		attrs := node.Link.Attrs()
+		//spew.Dump(node.Link)
+		parentIndex := attrs.ParentIndex
+		masterIndex := attrs.MasterIndex
+
+		_, nodeIsDevice := node.Link.(*netlink.Device)
+
+		if parentIndex != 0 {
+			parent := indexMap[parentIndex]
+			if _, ok := parent.Link.(*netlink.Bridge); ok {
+				childrenMap[0] = append(childrenMap[0], node)
+			} else {
+				_, parentIsVeth   := parent.Link.(*netlink.Veth)
+				_, parentIsDevice := parent.Link.(*netlink.Device)
+				if parentIsVeth || parentIsDevice {
+					childrenMap[parentIndex] = append(childrenMap[parentIndex], node)
+				} else {
+					if masterIndex == 0 && !nodeIsDevice {
+						childrenMap[0] = append(childrenMap[0], node)
+					}
+				}
+			}
 		}
 
 		if masterIndex != 0 {
-			parentsMap[masterIndex] = append(parentsMap[masterIndex], &node)
+			master := indexMap[masterIndex]
+			if _, ok := master.Link.(*netlink.Bridge); ok {
+				slavesMap[masterIndex] = append(slavesMap[masterIndex], node)
+			} else {
+				//childrenMap[0] = append(childrenMap[0], node)
+			}
+		} else {
+			if nodeIsDevice {
+				childrenMap[0] = append(childrenMap[0], node)
+			}
 		}
 	}
 
 	for index, node := range indexMap {
-		newParents  := parentsMap[index]
+		newSlaves   := slavesMap[index]
 		newChildren := childrenMap[index]
-		for _, parent := range newParents {
-			parent.Children = append(parent.Children, node)
-			node.Parents    = append(node.Parents, parent)
+		for _, slave := range newSlaves {
+			slave.Children = append(slave.Children, node)
+			node.Parents   = append(node.Parents, slave)
 		}
 		for _, child := range newChildren {
 			child.Parents = append(child.Parents, node)
@@ -95,10 +95,19 @@ func GetTree() *Node {
 		}
 	}
 
-	//fmt.Println(parentsMap)
+	//fmt.Println(slavesMap)
 	//fmt.Println(childrenMap)
 
 	rootNode.Children = childrenMap[0]
+
+	/*for index, children := range childrenMap {
+		if indexMap[index] != nil {
+			continue
+		}
+		aggNode := Node{}
+		aggNode.Children = children
+		rootNode.Children = append(rootNode.Children, &aggNode)
+	}*/
 
 	return &rootNode
 }

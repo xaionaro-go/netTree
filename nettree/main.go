@@ -11,7 +11,11 @@ import (
 )
 
 func recursivePrint(node *netTree.Node, level int, showAddrs bool) {
-	ifaceType := strings.ToLower(strings.Split(fmt.Sprintf("%T", node.Link), ".")[1])
+	ifaceType := ""
+	typeWords := strings.Split(fmt.Sprintf("%T", node.Link), ".")
+	if len(typeWords) == 2 {
+		ifaceType = strings.ToLower(typeWords[1])
+	}
 	ifaceName := ""
 	switch link := node.Link.(type) {
 	case *netlink.Bond:
